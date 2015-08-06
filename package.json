@@ -1,6 +1,6 @@
 {
-  "name": "npkit",
-  "version": "1.0.0",
+  "name": "np-kit",
+  "version": "2.0.0",
   "description": "kit for np",
   "main": "kit.js",
   "scripts": {
@@ -15,5 +15,11 @@
   "bugs": {
     "url": "https://github.com/chanteP/npkit/issues"
   },
-  "homepage": "https://github.com/chanteP/npkit"
+  "homepage": "https://github.com/chanteP/npkit",
+  "devDependencies": {
+    "browserify": "^11.0.1"
+  },
+  "dependencies": {
+    "np-tween-ani": "^1.0.3"
+  }
 }
