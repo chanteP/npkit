@@ -1,4 +1,3 @@
-
 var $ = {};
 module.exports = $;
 

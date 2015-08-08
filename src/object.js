@@ -22,7 +22,7 @@ var objMerger = function(needFilter, args){
 };
 module.exports = {
     get : function(data, ns){
-        var nsArr = (ns || '').split('.'), key;
+        var nsArr = ns.split('.'), key;
         while(nsArr.length){
             key = nsArr.shift();
             if(!data || typeof data !== 'object'){
@@ -33,7 +33,7 @@ module.exports = {
         return data;
     },
     set : function(data, ns, value){
-        var nsArr = (ns || '').split('.'), 
+        var nsArr = ns.split('.'), 
             key;
         while(nsArr.length > 1){
             key = nsArr.shift();

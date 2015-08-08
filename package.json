@@ -17,9 +17,10 @@
   },
   "homepage": "https://github.com/chanteP/npkit",
   "devDependencies": {
-    "browserify": "^11.0.1"
+    "browserify": "^11.0.1",
+    "watchify": "^3.3.1"
   },
   "dependencies": {
-    "np-tween-ani": "^1.0.3"
+    "np-tween-ani": "^1.0.4"
   }
 }
