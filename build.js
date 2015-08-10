@@ -6,7 +6,7 @@ b.add('./index.js')
 w = require('watchify')(b, {});
     
 w.on('update', function(){
-    console.log('update');
+    console.log('update@ ' + Date.now());
     bundle();
 });
 

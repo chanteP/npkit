@@ -26,14 +26,17 @@ var mods = {
     array : require('./src/array'),
     object : require('./src/object'),
     dom : require('./src/dom'),
-    string : require('./src/string')
+    string : require('./src/string'),
+    env : require('./src/env')
 };
 var modList = [
     'array',
     'object',
     'dom',
-    'string'
+    'string',
+    'env'
 ];
+
 modList.forEach(function(modName){
     var mod = mods[modName];
     var check = mod._check;
@@ -52,7 +55,7 @@ modList.forEach(function(modName){
 $.tween = require('np-tween-ani');
 
 window.np = $;
-},{"./src/array":3,"./src/dom":4,"./src/object":5,"./src/string":6,"np-tween-ani":2}],2:[function(require,module,exports){
+},{"./src/array":3,"./src/dom":4,"./src/env":5,"./src/object":6,"./src/string":7,"np-tween-ani":2}],2:[function(require,module,exports){
 var parse = function(){
     var type = 0, args = arguments
     var hold = false, rsObj, curObj;
@@ -353,7 +356,9 @@ module.exports = {
         return Array.isArray(arg);
     }
 }
-},{}],4:[function(require,module,exports){
+var $ = require('../');
+
+},{"../":1}],4:[function(require,module,exports){
 var parseEvtArgs = function(args){
     var params = {}, arg;
     for(var i = 0, j = args.length; i < j; i++){
@@ -496,6 +501,45 @@ module.exports = {
 }
 var $ = require('../');
 },{"../":1}],5:[function(require,module,exports){
+module.exports = {
+    get androidVersion(){
+        var androidVer = /Android\s([\d|\.]+)\b/i.exec(navigator.userAgent);
+        if(androidVer){
+            return androidVer[1];
+        }
+    },
+    get env(){
+        var env = $.querySearch('env');
+        if(env){return env;}
+        if(navigator.platform.indexOf('MacIntel') >= 0 || navigator.platform.indexOf('Win') >= 0){
+            return 'browser';
+        }
+        else if(navigator.userAgent.indexOf('webview') >= 0){
+            return 'APP';
+        }
+        return 'APP';
+    },
+    get os(){
+        var os = $.querySearch('os');
+        if(os){return os;}
+        if(/\bAndroid\b/i.test(navigator.userAgent)){
+            return 'Android';
+        }
+        if(/\biPhone\b/i.test(navigator.userAgent)){
+            return 'IOS';
+        }
+        if(navigator.platform.indexOf('MacIntel') >= 0){
+            return 'Mac';
+        }
+        if(navigator.platform.indexOf('Win') >= 0){
+            return 'Window';
+        }
+        return '';
+    },
+}
+var $ = require('../');
+
+},{"../":1}],6:[function(require,module,exports){
 var objMerger = function(needFilter, args){
     var isHold = 0, 
         resultObject, 
@@ -520,6 +564,8 @@ var objMerger = function(needFilter, args){
 };
 module.exports = {
     get : function(data, ns){
+        if(!ns){return data;}
+        ns = ns.replace(/[\[|\]]/g, '.').replace(/(?:(?:^\.*)|\.{2,}|(?:\.*$))/g, '');
         var nsArr = ns.split('.'), key;
         while(nsArr.length){
             key = nsArr.shift();
@@ -548,6 +594,9 @@ module.exports = {
     parse : function(){
         return objMerger(true, arguments);
     },
+    objectType : function(obj){
+        return Object.prototype.toString.call(obj).slice(8, -1);
+    },
     isEmptyObject : function(obj){
         for(var key in obj){
             if(obj.hasOwnProperty(key)){
@@ -557,16 +606,18 @@ module.exports = {
         return true;
     },
     isSimpleObject : function(obj){
-        return typeof obj === 'object' && Object.prototype.toString.call(obj) === '[object Object]';
+        return typeof obj === 'object' && $.objectType(obj) === 'Object';
     },
     _check : function(arg, method){
         return typeof arg === 'object';
     }
 }
+var $ = require('../');
 
-},{}],6:[function(require,module,exports){
+},{"../":1}],7:[function(require,module,exports){
 module.exports = {
     queryStringify : function(obj, notEncode){
+        if(typeof obj === 'string'){return obj;}
         var rs = [], key, val;
         for(var name in obj){
             if(!obj.hasOwnProperty(name)){continue;}
@@ -597,6 +648,45 @@ module.exports = {
             }
         }
         return rs;
+    },
+    querySearch : function(key, value){
+        if(arguments.length < 2){
+            return $.queryParse(location.search.slice(1))[key];
+        }
+        else{
+            var query = $.queryParse(location.search.slice(1));
+            query[key] = value;
+            return $.queryStringify(query);
+        }
+    },
+    /*
+        正则字符串转义
+        * . ? + $ ^ [ ] ( ) { } | \ /
+    */
+    encodeRegExp : function(str){
+        return str.replace(/([\*\.\?\+\$\^\[\]\(\)\{\}\|\\\/])/g, '\\$1');
+    },
+    trim : function(str, pattern, patternEnd){
+        if(typeof str !== 'string'){return str ? str.toString() : '';}
+        if(!pattern && !patternEnd){
+            return str.trim();
+        }
+        var startPattern, endPattern;
+        startPattern = endPattern = '';
+        startPattern = typeof pattern === 'string' ? 
+            new RegExp('^' + $.encodeRegExp(pattern)) : 
+            $.objectType(pattern) === 'RegExp' ? pattern : '';
+        str = startPattern ? str.replace(startPattern, '') : str;
+
+        endPattern = arguments.length <= 2 ? 
+                new RegExp($.encodeRegExp(startPattern.source.slice(1)) + '$'):
+                typeof patternEnd === 'string' ? 
+                    new RegExp($.encodeRegExp(patternEnd) + '$') : 
+                    $.objectType(patternEnd) === 'RegExp' ? patternEnd : '';
+                    console.log(patternEnd)
+        return endPattern ? str.replace(endPattern, '') : str;
     }
 }
-},{}]},{},[1]);
+var $ = require('../');
+
+},{"../":1}]},{},[1]);

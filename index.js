@@ -25,14 +25,17 @@ var mods = {
     array : require('./src/array'),
     object : require('./src/object'),
     dom : require('./src/dom'),
-    string : require('./src/string')
+    string : require('./src/string'),
+    env : require('./src/env')
 };
 var modList = [
     'array',
     'object',
     'dom',
-    'string'
+    'string',
+    'env'
 ];
+
 modList.forEach(function(modName){
     var mod = mods[modName];
     var check = mod._check;

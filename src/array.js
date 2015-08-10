@@ -19,3 +19,4 @@ module.exports = {
         return Array.isArray(arg);
     }
 }
+var $ = require('../');

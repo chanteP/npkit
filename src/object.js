@@ -22,6 +22,8 @@ var objMerger = function(needFilter, args){
 };
 module.exports = {
     get : function(data, ns){
+        if(!ns){return data;}
+        ns = ns.replace(/[\[|\]]/g, '.').replace(/(?:(?:^\.*)|\.{2,}|(?:\.*$))/g, '');
         var nsArr = ns.split('.'), key;
         while(nsArr.length){
             key = nsArr.shift();
@@ -50,6 +52,9 @@ module.exports = {
     parse : function(){
         return objMerger(true, arguments);
     },
+    objectType : function(obj){
+        return Object.prototype.toString.call(obj).slice(8, -1);
+    },
     isEmptyObject : function(obj){
         for(var key in obj){
             if(obj.hasOwnProperty(key)){
@@ -59,9 +64,10 @@ module.exports = {
         return true;
     },
     isSimpleObject : function(obj){
-        return typeof obj === 'object' && Object.prototype.toString.call(obj) === '[object Object]';
+        return typeof obj === 'object' && $.objectType(obj) === 'Object';
     },
     _check : function(arg, method){
         return typeof arg === 'object';
     }
 }
+var $ = require('../');

@@ -1,5 +1,6 @@
 module.exports = {
     queryStringify : function(obj, notEncode){
+        if(typeof obj === 'string'){return obj;}
         var rs = [], key, val;
         for(var name in obj){
             if(!obj.hasOwnProperty(name)){continue;}
@@ -30,5 +31,43 @@ module.exports = {
             }
         }
         return rs;
+    },
+    querySearch : function(key, value){
+        if(arguments.length < 2){
+            return $.queryParse(location.search.slice(1))[key];
+        }
+        else{
+            var query = $.queryParse(location.search.slice(1));
+            query[key] = value;
+            return $.queryStringify(query);
+        }
+    },
+    /*
+        正则字符串转义
+        * . ? + $ ^ [ ] ( ) { } | \ /
+    */
+    encodeRegExp : function(str){
+        return str.replace(/([\*\.\?\+\$\^\[\]\(\)\{\}\|\\\/])/g, '\\$1');
+    },
+    trim : function(str, pattern, patternEnd){
+        if(typeof str !== 'string'){return str ? str.toString() : '';}
+        if(!pattern && !patternEnd){
+            return str.trim();
+        }
+        var startPattern, endPattern;
+        startPattern = endPattern = '';
+        startPattern = typeof pattern === 'string' ? 
+            new RegExp('^' + $.encodeRegExp(pattern)) : 
+            $.objectType(pattern) === 'RegExp' ? pattern : '';
+        str = startPattern ? str.replace(startPattern, '') : str;
+
+        endPattern = arguments.length <= 2 ? 
+                new RegExp($.encodeRegExp(startPattern.source.slice(1)) + '$'):
+                typeof patternEnd === 'string' ? 
+                    new RegExp($.encodeRegExp(patternEnd) + '$') : 
+                    $.objectType(patternEnd) === 'RegExp' ? patternEnd : '';
+                    console.log(patternEnd)
+        return endPattern ? str.replace(endPattern, '') : str;
     }
 }
+var $ = require('../');
