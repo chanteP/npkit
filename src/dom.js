@@ -59,6 +59,11 @@ module.exports = {
         if(!rs){return false;}
         return [].indexOf.call(rs, node) >= 0;
     },
+    trigger : function(element, evt, args){
+        evt = typeof evt === 'string' ? new Event(evt, $.merge({bubbles:true}, args || {}, true)) : evt;
+        element.dispatchEvent(evt);
+        return this;
+    },
     evt : function(element){
         if(element._evtObject){return element._evtObject;}
 
@@ -115,6 +120,22 @@ module.exports = {
             }
         }
     },
+    domReady : (function(){
+        var readyList = [];
+        document.addEventListener('DOMContentLoaded', function(){
+            while(readyList.length){
+                readyList.pop()();
+            }
+        })
+        return function(func){
+            if(document.readyState == ='interactive' || document.readyState === 'complete'){
+                func();
+            }
+            else{
+                readyList.push(func);
+            }
+        }
+    })(),
     scrollTo : function(pos, wrap, type){
         wrap = wrap || document.body;
         if(wrap.npKitScrollAni){wrap.npKitScrollAni.stop();}
