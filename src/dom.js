@@ -136,6 +136,27 @@ module.exports = {
         else{
             wrap.scrollTop = pos;
         }
+    },
+    load : function(url, contentNode){
+        var type = /\.([\w]+)$/.exec(url);
+        type = type ? type[1] : '';
+        contentNode = contentNode || document.head;
+
+        var returnValue;
+        switch(type){
+            case 'js' : 
+                returnValue = document.createElement('script');
+                returnValue.src = url;
+                break;
+            case 'css' : 
+                returnValue = document.createElement('link');
+                returnValue.rel = 'stylesheet';
+                returnValue.href = url;
+                break;
+            default : 
+                break;
+        }
+        returnValue && contentNode.appendChild(returnValue);
     }
 }
 var $ = require('../');

@@ -1,13 +1,8 @@
 module.exports = {
-    get androidVersion(){
-        var androidVer = /Android\s([\d|\.]+)\b/i.exec(navigator.userAgent);
-        if(androidVer){
-            return androidVer[1];
-        }
-    },
-    get env(){
-        var env = $.querySearch('env');
-        if(env){return env;}
+    envList : ['browser', 'APP'],
+    env : (function(){
+        var env = /[\?\&]env=([^\#\&\=]+)/i.exec(window.location.search);
+        if(env){return env[1];}
         if(navigator.platform.indexOf('MacIntel') >= 0 || navigator.platform.indexOf('Win') >= 0){
             return 'browser';
         }
@@ -15,10 +10,11 @@ module.exports = {
             return 'APP';
         }
         return 'APP';
-    },
-    get os(){
-        var os = $.querySearch('os');
-        if(os){return os;}
+    })(),
+    osList : ['Android', 'IOS', 'Mac', 'Window'],
+    os : (function(){
+        var os = /[\?\&]os=([^\#\&\=]+)/i.exec(window.location.search);
+        if(os){return os[1];}
         if(/\bAndroid\b/i.test(navigator.userAgent)){
             return 'Android';
         }
@@ -32,6 +28,19 @@ module.exports = {
             return 'Window';
         }
         return '';
-    },
+    })(),
+    osVersion : (function(){
+        var ua = navigator.userAgent;
+        var androidVer = /\bAndroid\s([\d|\.]+)\b/i.exec(ua);
+        if(androidVer){
+            return androidVer[1];
+        }
+        var IOSVer = /\biPhone\sOS\s([\d\_]+)\s/i.exec(ua);
+        if(androidVer){
+            return IOSVer[1];
+        }
+        //其他有什么用...
+        return null;
+    })(),
 }
 var $ = require('../');

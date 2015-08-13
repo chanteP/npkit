@@ -9,6 +9,9 @@ w.on('update', function(){
     console.log('update@ ' + Date.now());
     bundle();
 });
+w.on('error', function(e){
+    console.log(e.message);
+});
 
 var bundle = function(){
     w.bundle()

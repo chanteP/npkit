@@ -27,16 +27,17 @@ var mods = {
     object : require('./src/object'),
     dom : require('./src/dom'),
     string : require('./src/string'),
-    env : require('./src/env')
+    env : require('./src/env'),
+    cache : require('./src/cache')
 };
 var modList = [
     'array',
     'object',
     'dom',
     'string',
-    'env'
+    'env',
+    'cache'
 ];
-
 modList.forEach(function(modName){
     var mod = mods[modName];
     var check = mod._check;
@@ -55,7 +56,7 @@ modList.forEach(function(modName){
 $.tween = require('np-tween-ani');
 
 window.np = $;
-},{"./src/array":3,"./src/dom":4,"./src/env":5,"./src/object":6,"./src/string":7,"np-tween-ani":2}],2:[function(require,module,exports){
+},{"./src/array":3,"./src/cache":4,"./src/dom":5,"./src/env":6,"./src/object":7,"./src/string":8,"np-tween-ani":2}],2:[function(require,module,exports){
 var parse = function(){
     var type = 0, args = arguments
     var hold = false, rsObj, curObj;
@@ -359,6 +360,111 @@ module.exports = {
 var $ = require('../');
 
 },{"../":1}],4:[function(require,module,exports){
+var defPrefix = '';
+//默认存1个月
+var defExp = 30 * 24 * 3600 * 1000;
+
+var getStorage = function(useSession){
+    return useSession ? window.sessionStorage : window.localStorage;
+}
+var expired2Timestamp = function(expired){
+    expired = isNaN(expired) ? 0 : expired;
+    expired = (!expired || String(expired).length === 13) ? expired : Date.now() + expired;
+    return +expired;
+}
+
+var Cache = function(prefix){
+    this.prefix = prefix || defPrefix;
+};
+Cache.prototype.get = function(name, protoData){
+    var storage = getStorage();
+    if(!storage){return null;}
+    var stData = storage.getItem(this.prefix + name);
+    if(stData === null || protoData){return stData;}
+    try{
+        stData = JSON.parse(stData);
+    }catch(e){}
+    var now = Date.now(), expired = stData.expired, data = stData.data;
+    return !expired || now < expired ? data : null;
+};
+//cookie一样..expired为叠加时间ms单位..,储存后expired为过期时间戳,默认时间见上面定义,0为直到地久天长海枯石烂ry
+//TODO 长度验证&数量验证
+Cache.prototype.set = function(name, value, expired){
+    var storage = getStorage();
+    if(!storage){return null;}
+    try{
+        value = JSON.parse(value);
+    }catch(e){
+    }
+    return storage.setItem(this.prefix + name, JSON.stringify({
+        timestamp : Date.now(),
+        data : value,
+        expired : expired2Timestamp(expired === undefined ? defExp : +expired)
+    }));
+};
+//获取本prefix下所有
+Cache.prototype.each = function(callback, reverse){
+    var storage = getStorage();
+    if(!storage){return null;}
+    if(typeof callback !== 'function'){return null;}
+    !reverse ? 
+        (function(self){
+            var name;
+            for(var i = 0; i < storage.length; i++){
+                name = storage.key(i);
+                if(name.indexOf(self.prefix) === 0){
+                    callback.apply(self, [name, name.replace(self.prefix, '')]);
+                }
+            }
+        })(this) : 
+        (function(self){
+            var name;
+            for(var i = storage.length - 1; i > 0; i--){
+                name = storage.key(i);
+                if(name.indexOf(self.prefix) === 0){
+                    callback.apply(self, [name, name.replace(self.prefix, '')]);
+                }
+            }
+        })(this);
+};
+//force ? 强制删除全部 : 删除过期的
+Cache.prototype.clear = function(force){
+    this.each(function(name, subName){
+        this.remove(subName, force);
+    });
+};
+//删除一个key
+Cache.prototype.remove = function(name, force){
+    var storage = getStorage();
+    if(!storage){return null;}
+    if(force || this.get(name) === null){
+        storage.removeItem(this.prefix + name);
+    }
+};
+
+Cache.prototype.extend = function(prefix){
+    if(typeof prefix !== 'string'){
+        prefix = '$';
+    }
+    return new Cache(this.prefix + prefix);
+};
+var commonCache = new Cache(defPrefix);
+Cache.set = commonCache.set;
+Cache.get = commonCache.get;
+Cache.remove = commonCache.remove;
+Cache.clear = commonCache.clear;
+Cache.extend = commonCache.extend;
+Cache.each = commonCache.each;
+Cache.prefix = commonCache.prefix;
+
+
+module.exports = {
+    storage : Cache
+};
+
+
+
+},{}],5:[function(require,module,exports){
 var parseEvtArgs = function(args){
     var params = {}, arg;
     for(var i = 0, j = args.length; i < j; i++){
@@ -497,20 +603,36 @@ module.exports = {
         else{
             wrap.scrollTop = pos;
         }
+    },
+    load : function(url, contentNode){
+        var type = /\.([\w]+)$/.exec(url);
+        type = type ? type[1] : '';
+        contentNode = contentNode || document.head;
+
+        var returnValue;
+        switch(type){
+            case 'js' : 
+                returnValue = document.createElement('script');
+                returnValue.src = url;
+                break;
+            case 'css' : 
+                returnValue = document.createElement('link');
+                returnValue.rel = 'stylesheet';
+                returnValue.href = url;
+                break;
+            default : 
+                break;
+        }
+        returnValue && contentNode.appendChild(returnValue);
     }
 }
 var $ = require('../');
-},{"../":1}],5:[function(require,module,exports){
+},{"../":1}],6:[function(require,module,exports){
 module.exports = {
-    get androidVersion(){
-        var androidVer = /Android\s([\d|\.]+)\b/i.exec(navigator.userAgent);
-        if(androidVer){
-            return androidVer[1];
-        }
-    },
-    get env(){
-        var env = $.querySearch('env');
-        if(env){return env;}
+    envList : ['browser', 'APP'],
+    env : (function(){
+        var env = /[\?\&]env=([^\#\&\=]+)/i.exec(window.location.search);
+        if(env){return env[1];}
         if(navigator.platform.indexOf('MacIntel') >= 0 || navigator.platform.indexOf('Win') >= 0){
             return 'browser';
         }
@@ -518,10 +640,11 @@ module.exports = {
             return 'APP';
         }
         return 'APP';
-    },
-    get os(){
-        var os = $.querySearch('os');
-        if(os){return os;}
+    })(),
+    osList : ['Android', 'IOS', 'Mac', 'Window'],
+    os : (function(){
+        var os = /[\?\&]os=([^\#\&\=]+)/i.exec(window.location.search);
+        if(os){return os[1];}
         if(/\bAndroid\b/i.test(navigator.userAgent)){
             return 'Android';
         }
@@ -535,11 +658,24 @@ module.exports = {
             return 'Window';
         }
         return '';
-    },
+    })(),
+    osVersion : (function(){
+        var ua = navigator.userAgent;
+        var androidVer = /\bAndroid\s([\d|\.]+)\b/i.exec(ua);
+        if(androidVer){
+            return androidVer[1];
+        }
+        var IOSVer = /\biPhone\sOS\s([\d\_]+)\s/i.exec(ua);
+        if(androidVer){
+            return IOSVer[1];
+        }
+        //其他有什么用...
+        return null;
+    })(),
 }
 var $ = require('../');
 
-},{"../":1}],6:[function(require,module,exports){
+},{"../":1}],7:[function(require,module,exports){
 var objMerger = function(needFilter, args){
     var isHold = 0, 
         resultObject, 
@@ -594,6 +730,16 @@ module.exports = {
     parse : function(){
         return objMerger(true, arguments);
     },
+    map : function(obj, func){
+        if(typeof obj !== 'object'){return;}
+        var rs = [];
+        for(var key in obj){
+            if(obj.hasOwnProperty(key)){
+                rs.push(func ? func.call(obj, obj[key], key, obj) : obj[key]);
+            }
+        }
+        return rs;
+    },
     objectType : function(obj){
         return Object.prototype.toString.call(obj).slice(8, -1);
     },
@@ -614,7 +760,7 @@ module.exports = {
 }
 var $ = require('../');
 
-},{"../":1}],7:[function(require,module,exports){
+},{"../":1}],8:[function(require,module,exports){
 module.exports = {
     queryStringify : function(obj, notEncode){
         if(typeof obj === 'string'){return obj;}

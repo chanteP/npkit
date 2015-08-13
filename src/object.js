@@ -52,6 +52,16 @@ module.exports = {
     parse : function(){
         return objMerger(true, arguments);
     },
+    map : function(obj, func){
+        if(typeof obj !== 'object'){return;}
+        var rs = [];
+        for(var key in obj){
+            if(obj.hasOwnProperty(key)){
+                rs.push(func ? func.call(obj, obj[key], key, obj) : obj[key]);
+            }
+        }
+        return rs;
+    },
     objectType : function(obj){
         return Object.prototype.toString.call(obj).slice(8, -1);
     },
