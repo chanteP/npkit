@@ -128,7 +128,7 @@ module.exports = {
             }
         })
         return function(func){
-            if(document.readyState == ='interactive' || document.readyState === 'complete'){
+            if(document.readyState === 'interactive' || document.readyState === 'complete'){
                 func();
             }
             else{
