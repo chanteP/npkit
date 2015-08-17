@@ -29,6 +29,10 @@ module.exports = {
         if(root == el){return true;}
         return !!(root.compareDocumentPosition(el) & 16);
     },
+    inScreen : function(node){
+        var t;
+        return node && node.scrollWidth && (t = node.getBoundingClientRect().top) >= 0 && (t + node.clientHeight) < document.documentElement.clientHeight;
+    },
     ancestor : function(node, selector){
         while(node.parentNode){
             if($.match(node.parentNode, selector)){
@@ -158,7 +162,7 @@ module.exports = {
             wrap.scrollTop = pos;
         }
     },
-    load : function(url, contentNode){
+    load : function(url, contentNode, conf){
         var type = /\.([\w]+)$/.exec(url);
         type = type ? type[1] : '';
         contentNode = contentNode || document.head;
@@ -177,7 +181,11 @@ module.exports = {
             default : 
                 break;
         }
-        returnValue && contentNode.appendChild(returnValue);
+        if(returnValue){
+            $.merge(returnValue, conf, true);
+            contentNode.appendChild(returnValue);
+        }
+        return returnValue;
     }
 }
 var $ = require('../');
