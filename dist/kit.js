@@ -6,14 +6,15 @@ var buildFunc = function(mt){
     return function(){
         var arg = arguments[0],
             mod;
-        for(var i = 0; i < modList.length; i++){
-            mod = mods[modList];
+        var i;
+        for(i = 0; i < modList.length; i++){
+            mod = mods[modList[i]];
             if(mod._check && mod._check(arg)){
                 return mod[mt].apply($, arguments);
             }
         }
-        for(var i = 0; i < modList.length; i++){
-            mod = mods[modList];
+        for(i = 0; i < modList.length; i++){
+            mod = mods[modList[i]];
             if(!mod._check){
                 return mod[mt].apply($, arguments);
             }
