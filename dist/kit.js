@@ -660,7 +660,7 @@ var $ = require('../');
 module.exports = {
     envList : ['browser', 'APP'],
     env : (function(){
-        var env = /[\?\&]env=([^\#\&\=]+)/i.exec(window.location.search);
+        var env = /[\?\&]env=([^\#\&\=]+)\b/i.exec(window.location.search);
         if(env){return env[1];}
         if(navigator.platform.indexOf('MacIntel') >= 0 || navigator.platform.indexOf('Win') >= 0){
             return 'browser';
@@ -672,7 +672,7 @@ module.exports = {
     })(),
     osList : ['Android', 'IOS', 'Mac', 'Window'],
     os : (function(){
-        var os = /[\?\&]os=([^\#\&\=]+)/i.exec(window.location.search);
+        var os = /[\?\&]os=([^\#\&\=]+)\b/i.exec(window.location.search);
         if(os){return os[1];}
         if(/\bAndroid\b/i.test(navigator.userAgent)){
             return 'Android';
@@ -701,6 +701,11 @@ module.exports = {
         //其他有什么用...
         return null;
     })(),
+    isLocal : (function(){
+        var isLocal = /[\?\&]isLocal=(true|false|0|1)\b/i.exec(window.location.search);
+        if(isLocal){return !!+isLocal[1];}
+        return /\b(localhost|127.0.0.1)\b/i.test(location.host);
+    })()
 }
 var $ = require('../');
 
@@ -717,7 +722,7 @@ var objMerger = function(needFilter, args){
     for(var i = isHold, j = args.length - isHold; i < j; i++) {
         currentObject = args[i];
         if(typeof currentObject === 'object'){
-            paramsMap = needFilter ? currentObject : args[0];
+            paramsMap = needFilter ? args[0] : currentObject;
             for(var key in paramsMap){
                 if(currentObject.hasOwnProperty(key)){
                     resultObject[key] = currentObject[key];

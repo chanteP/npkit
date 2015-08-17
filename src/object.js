@@ -10,7 +10,7 @@ var objMerger = function(needFilter, args){
     for(var i = isHold, j = args.length - isHold; i < j; i++) {
         currentObject = args[i];
         if(typeof currentObject === 'object'){
-            paramsMap = needFilter ? currentObject : args[0];
+            paramsMap = needFilter ? args[0] : currentObject;
             for(var key in paramsMap){
                 if(currentObject.hasOwnProperty(key)){
                     resultObject[key] = currentObject[key];
