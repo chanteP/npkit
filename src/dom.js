@@ -54,7 +54,7 @@ module.exports = {
         }
     },
     remove : function(node){
-        if(node.parentNode){
+        if(node && node.parentNode){
             return node.parentNode.removeChild(node);
         }
     },

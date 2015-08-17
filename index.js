@@ -8,7 +8,7 @@ var buildFunc = function(mt){
         var i;
         for(i = 0; i < modList.length; i++){
             mod = mods[modList[i]];
-            if(mod._check && mod._check(arg)){
+            if(mod[mt] && mod._check && mod._check(arg)){
                 return mod[mt].apply($, arguments);
             }
         }
@@ -41,8 +41,10 @@ var modList = [
 modList.forEach(function(modName){
     var mod = mods[modName];
     var check = mod._check;
+    $['_' + modName] = {};
     for(var mt in mod){
         if(mod.hasOwnProperty(mt) && mt[0] !== '_'){
+            $['_' + modName][mt] = mod[mt];
             if(!$[mt]){
                 $[mt] = mod[mt];
             }
