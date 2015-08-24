@@ -115,7 +115,7 @@ var trigger = function(obj, evt, args){
     if(obj._evtObject){
         obj._evtObject._each(evt, '@', function(func){
             try{
-                func(args);
+                func.apply(obj, args);
             }
             catch(e){
                 $.log(e);
