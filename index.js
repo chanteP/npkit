@@ -3,12 +3,12 @@ module.exports = $;
 
 var buildFunc = function(mt){
     return function(){
-        var arg = arguments[0],
+        var arg = arguments,
             mod;
         var i;
         for(i = 0; i < modList.length; i++){
             mod = mods[modList[i]];
-            if(mod[mt] && mod._check && mod._check(arg)){
+            if(mod[mt] && mod._check && mod._check(mt, arg)){
                 return mod[mt].apply($, arguments);
             }
         }
@@ -25,6 +25,7 @@ var buildFunc = function(mt){
 var mods = {
     array : require('./src/array'),
     object : require('./src/object'),
+    listener : require('./src/listener'),
     dom : require('./src/dom'),
     string : require('./src/string'),
     env : require('./src/env'),
@@ -33,6 +34,7 @@ var mods = {
 var modList = [
     'array',
     'object',
+    'listener',
     'dom',
     'string',
     'env',
@@ -40,7 +42,6 @@ var modList = [
 ];
 modList.forEach(function(modName){
     var mod = mods[modName];
-    var check = mod._check;
     $['_' + modName] = {};
     for(var mt in mod){
         if(mod.hasOwnProperty(mt) && mt[0] !== '_'){
@@ -56,5 +57,8 @@ modList.forEach(function(modName){
 });
 
 $.tween = require('np-tween-ani');
+$.log = function(e){
+    console && console.log(e);
+};
 
 window.np = $;

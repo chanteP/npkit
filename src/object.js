@@ -76,8 +76,8 @@ module.exports = {
     isSimpleObject : function(obj){
         return typeof obj === 'object' && $.objectType(obj) === 'Object';
     },
-    _check : function(arg, method){
-        return typeof arg === 'object';
+    _check : function(name, arg){
+        return typeof arg[0] === 'object';
     }
 }
 var $ = require('../');

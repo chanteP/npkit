@@ -4,12 +4,12 @@ module.exports = $;
 
 var buildFunc = function(mt){
     return function(){
-        var arg = arguments[0],
+        var arg = arguments,
             mod;
         var i;
         for(i = 0; i < modList.length; i++){
             mod = mods[modList[i]];
-            if(mod._check && mod._check(arg)){
+            if(mod[mt] && mod._check && mod._check(mt, arg)){
                 return mod[mt].apply($, arguments);
             }
         }
@@ -26,6 +26,7 @@ var buildFunc = function(mt){
 var mods = {
     array : require('./src/array'),
     object : require('./src/object'),
+    listener : require('./src/listener'),
     dom : require('./src/dom'),
     string : require('./src/string'),
     env : require('./src/env'),
@@ -34,6 +35,7 @@ var mods = {
 var modList = [
     'array',
     'object',
+    'listener',
     'dom',
     'string',
     'env',
@@ -41,9 +43,10 @@ var modList = [
 ];
 modList.forEach(function(modName){
     var mod = mods[modName];
-    var check = mod._check;
+    $['_' + modName] = {};
     for(var mt in mod){
         if(mod.hasOwnProperty(mt) && mt[0] !== '_'){
+            $['_' + modName][mt] = mod[mt];
             if(!$[mt]){
                 $[mt] = mod[mt];
             }
@@ -55,9 +58,12 @@ modList.forEach(function(modName){
 });
 
 $.tween = require('np-tween-ani');
+$.log = function(e){
+    console && console.log(e);
+};
 
 window.np = $;
-},{"./src/array":3,"./src/cache":4,"./src/dom":5,"./src/env":6,"./src/object":7,"./src/string":8,"np-tween-ani":2}],2:[function(require,module,exports){
+},{"./src/array":3,"./src/cache":4,"./src/dom":5,"./src/env":6,"./src/listener":7,"./src/object":8,"./src/string":9,"np-tween-ani":2}],2:[function(require,module,exports){
 var parse = function(){
     var type = 0, args = arguments
     var hold = false, rsObj, curObj;
@@ -354,8 +360,8 @@ module.exports = {
         if(index >= 0) arr.splice(index, 1);
         return;
     },
-    _check : function(arg){
-        return Array.isArray(arg);
+    _check : function(name, arg){
+        return Array.isArray(arg[0]);
     }
 }
 var $ = require('../');
@@ -466,25 +472,7 @@ module.exports = {
 
 
 },{}],5:[function(require,module,exports){
-var parseEvtArgs = function(args){
-    var params = {}, arg;
-    for(var i = 0, j = args.length; i < j; i++){
-        arg = args[i];
-        if(typeof arg === 'string' && !params.evt){
-            params.evt = arg;
-        }
-        else if(typeof arg === 'string' && !params.selector){
-            params.selector = arg;
-        }
-        else if(typeof arg === 'function' && !params.callback){
-            params.callback = arg;
-        }
-        else if(typeof arg === 'boolean' && !(params.capture)){
-            params.capture = arg;
-        }
-    }
-    return params;
-}
+
 
 module.exports = {
     find : function(selector, dom){
@@ -496,6 +484,9 @@ module.exports = {
     contains : function(root, el){
         if(root == el){return true;}
         return !!(root.compareDocumentPosition(el) & 16);
+    },
+    isNode : function(node){
+        return node && typeof node === 'object' && (node.nodeType === 1 || node.nodeType === 9) && typeof node.nodeName === 'string';
     },
     inScreen : function(node){
         var t;
@@ -522,7 +513,7 @@ module.exports = {
         }
     },
     remove : function(node){
-        if(node.parentNode){
+        if(node && node.parentNode){
             return node.parentNode.removeChild(node);
         }
     },
@@ -535,62 +526,6 @@ module.exports = {
         evt = typeof evt === 'string' ? new Event(evt, $.merge({bubbles:true}, args || {}, true)) : evt;
         element.dispatchEvent(evt);
         return this;
-    },
-    evt : function(element){
-        if(element._evtObject){return element._evtObject;}
-
-        element._eventList = element._eventList || {};
-        return element._evtObject = {
-            on : function(){
-                var args = parseEvtArgs(arguments);
-                var selector = args.selector,
-                    evt = args.evt,
-                    callback = args.callback,
-                    capture = args.capture;
-                if(!selector){
-                    element.addEventListener(evt, callback, capture);
-                }
-                else{
-                    var cb = function(e){
-                        var target = e.target;
-                        while(target && target !== element.parentNode){
-                            if($.match(target, selector, element)){
-                                callback.call(target, e);
-                                return true;
-                            }
-                            target = target.parentNode;
-                        }
-                    }
-                    element._eventList[selector] = element._eventList[selector] || [];
-                    element._eventList[selector].push({
-                        cb : cb,
-                        func : callback
-                    });
-                    element.addEventListener(evt, cb, capture);
-                }
-                return this;
-            },
-            off : function(){
-                var args = parseEvtArgs(arguments);
-                var selector = args.selector,
-                    evt = args.evt,
-                    callback = args.callback,
-                    capture = args.capture;
-
-                if(!selector){
-                    element.removeEventListener(evt, callback, capture);
-                }
-                else if(element._eventList[selector]){
-                    element._eventList[selector].forEach(function(cache){
-                        if(!callback || cache.func === callback){
-                            element.removeEventListener(evt, cache.cb, capture);
-                            return true;
-                        }
-                    });
-                }
-                return this;
-            }
-        }
     },
     domReady : (function(){
         var readyList = [];
@@ -629,6 +564,12 @@ module.exports = {
         else{
             wrap.scrollTop = pos;
         }
+    },
+    insertStyle : function(css){
+        var s = document.createElement('style');
+        s.innerHTML = css;
+        document.head.appendChild(s);
+        return s;
     },
     load : function(url, contentNode, conf){
         var type = /\.([\w]+)$/.exec(url);
@@ -711,6 +652,145 @@ module.exports = {
 var $ = require('../');
 
 },{"../":1}],7:[function(require,module,exports){
+var parseEvtArgs = function(args){
+    var params = {}, arg;
+    for(var i = 0, j = args.length; i < j; i++){
+        arg = args[i];
+        if(typeof arg === 'string' && !params.evt){
+            params.evt = arg;
+        }
+        else if(typeof arg === 'string' && !params.selector){
+            params.selector = arg;
+        }
+        else if(typeof arg === 'function' && !params.callback){
+            params.callback = arg;
+        }
+        else if(typeof arg === 'boolean' && !(params.capture)){
+            params.capture = arg;
+        }
+    }
+    return params;
+}
+var evtObject = {
+    element : null,
+    _add : function(evt, key, obj){
+        this._list[evt] = this._list[evt] || {};
+        this._list[evt][key] = this._list[evt][key] || [];
+        this._list[evt][key].push(obj);
+    },
+    _remove : function(evt, key, check){
+        if(!this._list || !this._list[evt] || !this._list[evt][key]){
+            return;
+        }
+        var obj;
+        for(var i = this._list[evt][key].length - 1; i >= 0; i--){
+            obj = this._list[evt][key][i];
+            if(check(obj)){
+                this._list[evt][key].splice(i, 1);
+            }
+        }
+    },
+    _list : {},
+    _each : function(evt, key, func){
+        if(this._list && this._list[evt] && this._list[evt][key]){
+            this._list[evt][key].forEach(func);
+        }
+    },
+    on : function(){
+        var args = parseEvtArgs(arguments);
+        var selector = args.selector,
+            evt = args.evt,
+            callback = args.callback,
+            capture = args.capture;
+        var element = this.element;
+        if(!element){return this;}
+        if(!$.isNode(element)){
+            this._add(evt, '@', callback);
+            return this;
+        }
+        if(!selector){
+            element.addEventListener(evt, callback, capture);
+        }
+        else{
+            var cb = function(e){
+                var target = e.target;
+                while(target && target !== element.parentNode){
+                    if($.match(target, selector, element)){
+                        callback.call(target, e);
+                        return true;
+                    }
+                    target = target.parentNode;
+                }
+            }
+            this._add(evt, selector, {
+                cb : cb,
+                func : callback
+            });
+            element.addEventListener(evt, cb, capture);
+        }
+        return this;
+    },
+    off : function(){
+        var args = parseEvtArgs(arguments);
+        var selector = args.selector,
+            evt = args.evt,
+            callback = args.callback,
+            capture = args.capture;
+        var element = this.element;
+        if(!element){return this;}
+        if(!$.isNode(element)){
+            $._remove(evt, '@', function(obj){
+                return obj === callback;
+            });
+            return this;
+        }
+        if(!selector){
+            element.removeEventListener(evt, callback, capture);
+        }
+        else{
+            this._remove(evt, selector, function(obj){
+                if(!callback || obj.func === callback){
+                    element.removeEventListener(evt, obj.cb, capture);
+                    return true;
+                }
+            });
+        }
+        return this;
+    }
+}
+var listener = function(element){
+    element = element || window;
+    if(element._evtObject){return element._evtObject;}
+    element._evtObject = {element:element};
+    element._evtObject.__proto__ = evtObject;
+    return element._evtObject;
+}
+var trigger = function(obj, evt, args){
+    if(obj._evtObject){
+        obj._evtObject._each(evt, '@', function(func){
+            try{
+                func(args);
+            }
+            catch(e){
+                $.log(e);
+            }
+        })
+    }
+}
+module.exports = {
+    /*写的什么鬼...*/
+    evt : listener,
+    listener : listener,
+    trigger : trigger,
+    _check : function(name, arg){
+        if(name === 'trigger' && !$.isNode(arg)){
+            return true;
+        }
+    }
+};
+var $ = require('../');
+
+},{"../":1}],8:[function(require,module,exports){
 var objMerger = function(needFilter, args){
     var isHold = 0, 
         resultObject, 
@@ -789,13 +869,13 @@ module.exports = {
     isSimpleObject : function(obj){
         return typeof obj === 'object' && $.objectType(obj) === 'Object';
     },
-    _check : function(arg, method){
-        return typeof arg === 'object';
+    _check : function(name, arg){
+        return typeof arg[0] === 'object';
     }
 }
 var $ = require('../');
 
-},{"../":1}],8:[function(require,module,exports){
+},{"../":1}],9:[function(require,module,exports){
 module.exports = {
     queryStringify : function(obj, notEncode){
         if(typeof obj === 'string'){return obj;}
@@ -864,7 +944,6 @@ module.exports = {
                 typeof patternEnd === 'string' ? 
                     new RegExp($.encodeRegExp(patternEnd) + '$') : 
                     $.objectType(patternEnd) === 'RegExp' ? patternEnd : '';
-                    console.log(patternEnd)
         return endPattern ? str.replace(endPattern, '') : str;
     }
 }

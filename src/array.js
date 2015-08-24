@@ -15,8 +15,8 @@ module.exports = {
         if(index >= 0) arr.splice(index, 1);
         return;
     },
-    _check : function(arg){
-        return Array.isArray(arg);
+    _check : function(name, arg){
+        return Array.isArray(arg[0]);
     }
 }
 var $ = require('../');

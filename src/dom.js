@@ -1,22 +1,4 @@
-var parseEvtArgs = function(args){
-    var params = {}, arg;
-    for(var i = 0, j = args.length; i < j; i++){
-        arg = args[i];
-        if(typeof arg === 'string' && !params.evt){
-            params.evt = arg;
-        }
-        else if(typeof arg === 'string' && !params.selector){
-            params.selector = arg;
-        }
-        else if(typeof arg === 'function' && !params.callback){
-            params.callback = arg;
-        }
-        else if(typeof arg === 'boolean' && !(params.capture)){
-            params.capture = arg;
-        }
-    }
-    return params;
-}
+
 
 module.exports = {
     find : function(selector, dom){
@@ -28,6 +10,9 @@ module.exports = {
     contains : function(root, el){
         if(root == el){return true;}
         return !!(root.compareDocumentPosition(el) & 16);
+    },
+    isNode : function(node){
+        return node && typeof node === 'object' && (node.nodeType === 1 || node.nodeType === 9) && typeof node.nodeName === 'string';
     },
     inScreen : function(node){
         var t;
@@ -67,62 +52,6 @@ module.exports = {
         evt = typeof evt === 'string' ? new Event(evt, $.merge({bubbles:true}, args || {}, true)) : evt;
         element.dispatchEvent(evt);
         return this;
-    },
-    evt : function(element){
-        if(element._evtObject){return element._evtObject;}
-
-        element._eventList = element._eventList || {};
-        return element._evtObject = {
-            on : function(){
-                var args = parseEvtArgs(arguments);
-                var selector = args.selector,
-                    evt = args.evt,
-                    callback = args.callback,
-                    capture = args.capture;
-                if(!selector){
-                    element.addEventListener(evt, callback, capture);
-                }
-                else{
-                    var cb = function(e){
-                        var target = e.target;
-                        while(target && target !== element.parentNode){
-                            if($.match(target, selector, element)){
-                                callback.call(target, e);
-                                return true;
-                            }
-                            target = target.parentNode;
-                        }
-                    }
-                    element._eventList[selector] = element._eventList[selector] || [];
-                    element._eventList[selector].push({
-                        cb : cb,
-                        func : callback
-                    });
-                    element.addEventListener(evt, cb, capture);
-                }
-                return this;
-            },
-            off : function(){
-                var args = parseEvtArgs(arguments);
-                var selector = args.selector,
-                    evt = args.evt,
-                    callback = args.callback,
-                    capture = args.capture;
-
-                if(!selector){
-                    element.removeEventListener(evt, callback, capture);
-                }
-                else if(element._eventList[selector]){
-                    element._eventList[selector].forEach(function(cache){
-                        if(!callback || cache.func === callback){
-                            element.removeEventListener(evt, cache.cb, capture);
-                            return true;
-                        }
-                    });
-                }
-                return this;
-            }
-        }
     },
     domReady : (function(){
         var readyList = [];

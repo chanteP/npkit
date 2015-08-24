@@ -66,7 +66,6 @@ module.exports = {
                 typeof patternEnd === 'string' ? 
                     new RegExp($.encodeRegExp(patternEnd) + '$') : 
                     $.objectType(patternEnd) === 'RegExp' ? patternEnd : '';
-                    console.log(patternEnd)
         return endPattern ? str.replace(endPattern, '') : str;
     }
 }
