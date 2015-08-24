@@ -162,6 +162,12 @@ module.exports = {
             wrap.scrollTop = pos;
         }
     },
+    insertStyle : function(css){
+        var s = document.createElement('style');
+        s.innerHTML = css;
+        document.head.appendChild(s);
+        return s;
+    },
     load : function(url, contentNode, conf){
         var type = /\.([\w]+)$/.exec(url);
         type = type ? type[1] : '';
