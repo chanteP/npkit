@@ -100,28 +100,34 @@ module.exports = {
         document.head.appendChild(s);
         return s;
     },
-    load : function(url, contentNode, conf){
+    load : function(url, contentNode){
         var type = /\.([\w]+)$/.exec(url);
         type = type ? type[1] : '';
-        contentNode = contentNode || document.head;
+        typeof contentNode === 'string' && (type = contentNode, 1) && (contentNode = document.head);
 
         var returnValue;
         switch(type){
             case 'js' : 
                 returnValue = document.createElement('script');
                 returnValue.src = url;
+                contentNode.appendChild(returnValue);
                 break;
             case 'css' : 
                 returnValue = document.createElement('link');
                 returnValue.rel = 'stylesheet';
                 returnValue.href = url;
+                contentNode.appendChild(returnValue);
+                break;
+            case 'document' : 
+                returnValue = document.createElement('iframe');
+                returnValue.style.cssText = 'border:0;margin:0;padding:0;visibility:hidden;height:0;width:0;overflow:hidden;';
+                returnValue.src = url;
+                contentNode.appendChild(returnValue);
                 break;
             default : 
+                returnValue = new Image;
+                returnValue.src = url;
                 break;
-        }
-        if(returnValue){
-            $.merge(returnValue, conf, true);
-            contentNode.appendChild(returnValue);
         }
         return returnValue;
     }
