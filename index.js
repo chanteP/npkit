@@ -24,8 +24,8 @@ var buildFunc = function(mt){
 
 var mods = {
     array : require('./src/array'),
-    object : require('./src/object'),
     listener : require('./src/listener'),
+    object : require('./src/object'),
     dom : require('./src/dom'),
     string : require('./src/string'),
     env : require('./src/env'),
@@ -33,8 +33,8 @@ var mods = {
 };
 var modList = [
     'array',
-    'object',
     'listener',
+    'object',
     'dom',
     'string',
     'env',
