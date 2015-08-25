@@ -63,7 +63,7 @@ module.exports = {
         return rs;
     },
     each : function(obj, func){
-        if(obj.length){
+        if(obj.hasOwnProperty('length')){
             return Array.prototype.forEach.call(obj, func);
         }
         for(var key in obj){
