@@ -103,7 +103,8 @@ module.exports = {
     load : function(url, contentNode){
         var type = /\.([\w]+)$/.exec(url);
         type = type ? type[1] : '';
-        typeof contentNode === 'string' && (type = contentNode, 1) && (contentNode = document.head);
+        typeof contentNode === 'string' && (type = contentNode, 1) && (contentNode = null);
+        contentNode = contentNode || document.head;
 
         var returnValue;
         switch(type){
