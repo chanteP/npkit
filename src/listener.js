@@ -130,7 +130,7 @@ module.exports = {
     listener : listener,
     trigger : trigger,
     _check : function(name, arg){
-        if(name === 'trigger' && !$.isEventTarget(arg)){
+        if(name === 'trigger' && $.isEventTarget(arg)){
             return true;
         }
     }
