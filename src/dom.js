@@ -14,6 +14,9 @@ module.exports = {
     isNode : function(node){
         return node && typeof node === 'object' && (node.nodeType === 1 || node.nodeType === 9) && typeof node.nodeName === 'string';
     },
+    isEventTarget : function(node){
+        return node && node.addEventListener;
+    },
     inScreen : function(node){
         var t;
         return node && node.scrollWidth && (t = node.getBoundingClientRect().top) >= 0 && (t + node.clientHeight) < document.documentElement.clientHeight;

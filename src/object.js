@@ -62,6 +62,16 @@ module.exports = {
         }
         return rs;
     },
+    each : function(obj, func){
+        if(obj.length){
+            return Array.prototype.forEach.call(obj, func);
+        }
+        for(var key in obj){
+            if(obj.hasOwnProperty(key)){
+                func.call(obj, obj[key], key, obj);
+            }
+        }
+    },
     objectType : function(obj){
         return Object.prototype.toString.call(obj).slice(8, -1);
     },
