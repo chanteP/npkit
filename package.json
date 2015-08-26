@@ -1,6 +1,6 @@
 {
   "name": "np-kit",
-  "version": "2.0.21",
+  "version": "2.0.22",
   "description": "kit for np",
   "main": "kit.js",
   "scripts": {

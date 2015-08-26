@@ -63,16 +63,16 @@ $.log = function(){
     for(var i = 0; i < arguments.length; i++){
         if(arguments[i] instanceof window.Error){
             type = 'error';
-            message.push(e);
         }
         else if(logTypes.indexOf(arguments[i])){
             type = arguments[i];
         }
+        message.push(arguments[i]);
     }
     if(type !== 'log' || $.debug){
         console && console[type].apply(console, message);
     }
 };
-$.debug = false;
+$.debug = $.querySearch('debug') || false;
 
 window.np = $;
