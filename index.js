@@ -64,7 +64,7 @@ $.log = function(){
         if(arguments[i] instanceof window.Error){
             type = 'error';
         }
-        else if(logTypes.indexOf(arguments[i])){
+        else if(logTypes.indexOf(arguments[i]) >= 0){
             type = arguments[i];
         }
         else{
