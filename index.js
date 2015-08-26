@@ -67,7 +67,9 @@ $.log = function(){
         else if(logTypes.indexOf(arguments[i])){
             type = arguments[i];
         }
-        message.push(arguments[i]);
+        else{
+            message.push(arguments[i]);
+        }
     }
     if(type !== 'log' || $.debug){
         console && console[type].apply(console, message);
