@@ -10,6 +10,9 @@ module.exports = {
         }
         return arr;
     },
+    each : function(arr, func){
+        arr.forEach(func);
+    },
     remove : function(arr, elem){
         var index = arr.indexOf(elem);
         if(index >= 0) arr.splice(index, 1);

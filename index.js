@@ -24,8 +24,8 @@ var buildFunc = function(mt){
 
 var mods = {
     array : require('./src/array'),
-    object : require('./src/object'),
     listener : require('./src/listener'),
+    object : require('./src/object'),
     dom : require('./src/dom'),
     string : require('./src/string'),
     env : require('./src/env'),
@@ -33,8 +33,8 @@ var mods = {
 };
 var modList = [
     'array',
-    'object',
     'listener',
+    'object',
     'dom',
     'string',
     'env',
@@ -57,8 +57,22 @@ modList.forEach(function(modName){
 });
 
 $.tween = require('np-tween-ani');
-$.log = function(e){
-    console && console.log(e);
+var logTypes = ['log', 'error', 'info', 'warn', 'debug'];
+$.log = function(){
+    var message = [], mod, type = 'log';
+    for(var i = 0; i < arguments.length; i++){
+        if(arguments[i] instanceof window.Error){
+            type = 'error';
+            message.push(e);
+        }
+        else if(logTypes.indexOf(arguments[i])){
+            type = arguments[i];
+        }
+    }
+    if(type !== 'log' || $.debug){
+        console && console[type].apply(console, message);
+    }
 };
+$.debug = false;
 
 window.np = $;

@@ -14,6 +14,9 @@ module.exports = {
     isNode : function(node){
         return node && typeof node === 'object' && (node.nodeType === 1 || node.nodeType === 9) && typeof node.nodeName === 'string';
     },
+    isEventTarget : function(node){
+        return node && node.addEventListener;
+    },
     inScreen : function(node){
         var t;
         return node && node.scrollWidth && (t = node.getBoundingClientRect().top) >= 0 && (t + node.clientHeight) < document.documentElement.clientHeight;
@@ -97,9 +100,10 @@ module.exports = {
         document.head.appendChild(s);
         return s;
     },
-    load : function(url, contentNode, conf){
+    load : function(url, contentNode){
         var type = /\.([\w]+)$/.exec(url);
         type = type ? type[1] : '';
+        typeof contentNode === 'string' && (type = contentNode, 1) && (contentNode = null);
         contentNode = contentNode || document.head;
 
         var returnValue;
@@ -107,18 +111,24 @@ module.exports = {
             case 'js' : 
                 returnValue = document.createElement('script');
                 returnValue.src = url;
+                contentNode.appendChild(returnValue);
                 break;
             case 'css' : 
                 returnValue = document.createElement('link');
                 returnValue.rel = 'stylesheet';
                 returnValue.href = url;
+                contentNode.appendChild(returnValue);
+                break;
+            case 'document' : 
+                returnValue = document.createElement('iframe');
+                returnValue.style.cssText = 'border:0;margin:0;padding:0;visibility:hidden;height:0;width:0;overflow:hidden;';
+                returnValue.src = url;
+                contentNode.appendChild(returnValue);
                 break;
             default : 
+                returnValue = new Image;
+                returnValue.src = url;
                 break;
-        }
-        if(returnValue){
-            $.merge(returnValue, conf, true);
-            contentNode.appendChild(returnValue);
         }
         return returnValue;
     }

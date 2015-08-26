@@ -17,6 +17,7 @@ var parseEvtArgs = function(args){
     }
     return params;
 }
+
 var evtObject = {
     element : null,
     _add : function(evt, key, obj){
@@ -50,7 +51,7 @@ var evtObject = {
             capture = args.capture;
         var element = this.element;
         if(!element){return this;}
-        if(!$.isNode(element)){
+        if(!$.isEventTarget(element)){
             this._add(evt, '@', callback);
             return this;
         }
@@ -84,7 +85,7 @@ var evtObject = {
             capture = args.capture;
         var element = this.element;
         if(!element){return this;}
-        if(!$.isNode(element)){
+        if(!$.isEventTarget(element)){
             $._remove(evt, '@', function(obj){
                 return obj === callback;
             });
@@ -129,7 +130,7 @@ module.exports = {
     listener : listener,
     trigger : trigger,
     _check : function(name, arg){
-        if(name === 'trigger' && !$.isNode(arg)){
+        if(name === 'trigger' && !$.isEventTarget(arg[0])){
             return true;
         }
     }
