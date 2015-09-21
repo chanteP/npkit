@@ -15,17 +15,17 @@ module.exports = {
     os : (function(){
         var os = /[\?\&]os=([^\#\&\=]+)\b/i.exec(window.location.search);
         if(os){return os[1];}
-        if(/\bAndroid\b/i.test(navigator.userAgent)){
-            return 'Android';
-        }
-        if(/\biPhone\b/i.test(navigator.userAgent)){
-            return 'IOS';
-        }
         if(navigator.platform.indexOf('MacIntel') >= 0){
             return 'Mac';
         }
         if(navigator.platform.indexOf('Win') >= 0){
             return 'Window';
+        }
+        if(/\bAndroid\b/i.test(navigator.userAgent)){
+            return 'Android';
+        }
+        if(/\biPhone\b/i.test(navigator.userAgent)){
+            return 'IOS';
         }
         return '';
     })(),
